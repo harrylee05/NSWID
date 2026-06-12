@@ -34,14 +34,17 @@ export default function PinEntry({ onSuccess }) {
   const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫']
 
   return (
-    <div className="min-h-screen bg-nsw-navy flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6">
       {/* NSW Logo area */}
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <div className="w-1.5 h-8 bg-nsw-red rounded-sm" />
+          <svg width="36" height="30" viewBox="0 0 120 102" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 102C60 102 10 70 10 38C10 20 24 8 40 12C46 14 52 18 60 26C68 18 74 14 80 12C96 8 110 20 110 38C110 70 60 102 60 102Z" fill="#E8192C"/>
+            <path d="M60 85C60 85 22 60 22 38C22 26 32 18 44 22C50 24 55 28 60 34C65 28 70 24 76 22C88 18 98 26 98 38C98 60 60 85 60 85Z" fill="#E8192C" opacity="0.7"/>
+          </svg>
           <span className="text-white text-3xl font-bold tracking-widest">NSW</span>
         </div>
-        <p className="text-blue-200 text-sm tracking-wider">DIGITAL LICENCE</p>
+        <p className="text-gray-400 text-sm tracking-wider">DIGITAL LICENCE</p>
       </div>
 
       <p className="text-white text-lg mb-6 font-light">Enter your PIN</p>
@@ -53,8 +56,8 @@ export default function PinEntry({ onSuccess }) {
             key={i}
             className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${
               pin.length > i
-                ? error ? 'bg-nsw-red border-nsw-red' : 'bg-white border-white'
-                : 'border-gray-400 bg-transparent'
+                ? error ? 'bg-red-600 border-red-600' : 'bg-white border-white'
+                : 'border-gray-600 bg-transparent'
             }`}
           />
         ))}
@@ -73,7 +76,7 @@ export default function PinEntry({ onSuccess }) {
             <button
               key={i}
               onClick={backspace}
-              className="h-16 rounded-2xl bg-blue-900 text-white text-xl flex items-center justify-center active:bg-blue-800 transition-colors"
+              className="h-16 rounded-2xl bg-gray-900 text-white text-xl flex items-center justify-center active:bg-gray-700 transition-colors"
             >
               ⌫
             </button>
@@ -82,7 +85,7 @@ export default function PinEntry({ onSuccess }) {
             <button
               key={i}
               onClick={() => press(k)}
-              className="h-16 rounded-2xl bg-blue-900 text-white text-2xl font-light flex items-center justify-center active:bg-blue-800 transition-colors"
+              className="h-16 rounded-2xl bg-gray-900 text-white text-2xl font-light flex items-center justify-center active:bg-gray-700 transition-colors"
             >
               {k}
             </button>
@@ -90,7 +93,7 @@ export default function PinEntry({ onSuccess }) {
         })}
       </div>
 
-      <p className="text-blue-400 text-xs mt-8">Hint: PIN is 1234</p>
+      <p className="text-gray-600 text-xs mt-8">Hint: PIN is 1234</p>
     </div>
   )
 }
