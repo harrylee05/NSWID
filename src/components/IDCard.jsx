@@ -1,14 +1,56 @@
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { mockUser } from '../data/mockUser'
+
 const photoSrc = '/photo.jpg'
 
-function NSWLotus({ size = 40, color = '#E8192C' }) {
+/* NSW Waratah — stylised Telopea flower matching the real NSW Government logo */
+function NSWWaratah({ size = 48, color = '#E8192C' }) {
   return (
-    <svg width={size} height={size * 0.85} viewBox="0 0 120 102" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M60 102C60 102 10 70 10 38C10 20 24 8 40 12C46 14 52 18 60 26C68 18 74 14 80 12C96 8 110 20 110 38C110 70 60 102 60 102Z" fill={color}/>
-      <path d="M60 85C60 85 22 60 22 38C22 26 32 18 44 22C50 24 55 28 60 34C65 28 70 24 76 22C88 18 98 26 98 38C98 60 60 85 60 85Z" fill={color} opacity="0.7"/>
-      <path d="M60 68C60 68 34 50 34 36C34 28 42 24 50 28C54 30 57 33 60 37C63 33 66 30 70 28C78 24 86 28 86 36C86 50 60 68 60 68Z" fill={color} opacity="0.5"/>
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Outer petals — 8 rounded petals radiating from centre */}
+      {[0,45,90,135,180,225,270,315].map((angle, i) => {
+        const rad = (angle * Math.PI) / 180
+        const cx = 50 + Math.sin(rad) * 28
+        const cy = 50 - Math.cos(rad) * 28
+        return (
+          <ellipse
+            key={i}
+            cx={cx}
+            cy={cy}
+            rx="10"
+            ry="16"
+            transform={`rotate(${angle}, ${cx}, ${cy})`}
+            fill={color}
+            opacity="0.9"
+          />
+        )
+      })}
+      {/* Inner ring of petals */}
+      {[22.5,67.5,112.5,157.5,202.5,247.5,292.5,337.5].map((angle, i) => {
+        const rad = (angle * Math.PI) / 180
+        const cx = 50 + Math.sin(rad) * 16
+        const cy = 50 - Math.cos(rad) * 16
+        return (
+          <ellipse
+            key={i}
+            cx={cx}
+            cy={cy}
+            rx="7"
+            ry="11"
+            transform={`rotate(${angle}, ${cx}, ${cy})`}
+            fill={color}
+          />
+        )
+      })}
+      {/* Centre dome */}
+      <circle cx="50" cy="50" r="13" fill={color} />
+      <circle cx="50" cy="50" r="8" fill={color === '#E8192C' ? '#c0001f' : color} opacity="0.6" />
+      {/* Tiny stamen dots */}
+      {[0,60,120,180,240,300].map((a, i) => {
+        const r = (a * Math.PI) / 180
+        return <circle key={i} cx={50 + Math.sin(r) * 5} cy={50 - Math.cos(r) * 5} r="1.5" fill="white" opacity="0.8" />
+      })}
     </svg>
   )
 }
@@ -16,7 +58,7 @@ function NSWLotus({ size = 40, color = '#E8192C' }) {
 function RefreshedTime() {
   const [now, setNow] = useState(new Date())
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60000)
+    const id = setInterval(() => setNow(new Date()), 30000)
     return () => clearInterval(id)
   }, [])
   const day = now.getDate()
@@ -24,8 +66,8 @@ function RefreshedTime() {
   const year = now.getFullYear()
   const time = now.toLocaleString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()
   return (
-    <div className="text-right leading-tight">
-      <p className="text-gray-300 text-xs">Refreshed</p>
+    <div className="text-right leading-snug">
+      <p className="text-gray-500 text-xs font-medium tracking-wide">Refreshed</p>
       <p className="text-white text-sm font-semibold">{day} {month} {year}</p>
       <p className="text-white text-sm font-semibold">{time}</p>
     </div>
@@ -37,27 +79,49 @@ function HolographicOverlay() {
     <div
       className="absolute inset-0 pointer-events-none"
       style={{
-        background: 'conic-gradient(from 0deg at 30% 60%, #ff006688, #ff990088, #00ff8888, #0099ff88, #9900ff88, #ff006688)',
+        background: [
+          'conic-gradient(from 0deg at 40% 55%,',
+          '#ff006855, #ff7c0055, #ffe60055,',
+          '#00ff8855, #00b8ff55, #8000ff55,',
+          '#ff006855)',
+        ].join(' '),
         mixBlendMode: 'color',
-        animation: 'spin 8s linear infinite',
+        animation: 'holo-spin 10s linear infinite',
       }}
     />
+  )
+}
+
+function Divider() {
+  return <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 0 20px' }} />
+}
+
+function Field({ label, value, large = false, className = '' }) {
+  return (
+    <div className={className}>
+      <p className="text-gray-500 text-xs font-medium tracking-wider uppercase mb-0.5">{label}</p>
+      <p className={`text-white font-bold leading-tight ${large ? 'text-3xl' : 'text-2xl'}`}>{value}</p>
+    </div>
   )
 }
 
 export default function IDCard({ onLock }) {
   const [verifying, setVerifying] = useState(false)
   const [verified, setVerified] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [verifyTimer, setVerifyTimer] = useState(null)
+  const [progressInterval, setProgressInterval] = useState(null)
 
   const handleVerifyStart = () => {
     setVerifying(true)
+    setProgress(0)
+    const iv = setInterval(() => setProgress(p => Math.min(p + 4, 100)), 60)
+    setProgressInterval(iv)
     const t = setTimeout(() => {
+      clearInterval(iv)
+      setProgress(100)
       setVerified(true)
-      setTimeout(() => {
-        setVerified(false)
-        setVerifying(false)
-      }, 2500)
+      setTimeout(() => { setVerified(false); setVerifying(false); setProgress(0) }, 2500)
     }, 1500)
     setVerifyTimer(t)
   }
@@ -65,7 +129,9 @@ export default function IDCard({ onLock }) {
   const handleVerifyEnd = () => {
     if (!verified) {
       clearTimeout(verifyTimer)
+      clearInterval(progressInterval)
       setVerifying(false)
+      setProgress(0)
     }
   }
 
@@ -78,182 +144,198 @@ export default function IDCard({ onLock }) {
   })
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      {/* Verified overlay — full screen */}
+    <div className="min-h-screen flex flex-col" style={{ background: '#0d0d0d', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+
+      {/* Verified full-screen overlay */}
       {verified && (
-        <div className="fixed inset-0 bg-green-600 bg-opacity-95 flex flex-col items-center justify-center z-50">
-          <svg className="w-24 h-24 text-white mb-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-white text-3xl font-bold tracking-widest">VERIFIED</p>
-          <p className="text-green-100 text-base mt-2">Identity Confirmed</p>
+        <div className="fixed inset-0 flex flex-col items-center justify-center z-50" style={{ background: '#1a8a3a' }}>
+          <div className="mb-6">
+            <svg className="w-28 h-28" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="46" stroke="white" strokeWidth="4" opacity="0.3" />
+              <circle cx="50" cy="50" r="46" stroke="white" strokeWidth="4"
+                strokeDasharray="289" strokeDashoffset="0"
+                style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+              <path d="M28 52 L44 68 L72 36" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+          <p className="text-white text-4xl font-black tracking-widest mb-2">VERIFIED</p>
+          <p className="text-green-200 text-base font-medium">Identity Confirmed</p>
         </div>
       )}
 
-      {/* Top yellow diagonal stripe */}
-      <div className="relative h-16 overflow-hidden flex-shrink-0">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom right, #F0C020 0%, #F0C020 60%, transparent 60%)',
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom right, transparent 55%, #1a1a1a 55%)',
-          }}
-        />
+      {/* Top yellow wedge — exactly like real app */}
+      <div className="flex-shrink-0 relative overflow-hidden" style={{ height: 56 }}>
+        <svg viewBox="0 0 390 56" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+          <polygon points="0,0 390,0 260,56 0,56" fill="#F2C015" />
+        </svg>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-5 pb-8">
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 100 }}>
+        <div className="px-6 pt-5 pb-2">
 
-        {/* NSW logo + Refreshed */}
-        <div className="flex items-start justify-between mt-4 mb-4">
-          <div className="flex items-center gap-2">
-            <NSWLotus size={44} color="#E8192C" />
-            <span className="text-white text-xl font-bold tracking-widest">NSW</span>
-          </div>
-          <RefreshedTime />
-        </div>
-
-        {/* Large photo with holographic overlay */}
-        <div className="flex justify-center mb-4">
-          <div className="relative w-52 h-64 overflow-hidden rounded-sm">
-            <img
-              src={photoSrc}
-              alt="ID Photo"
-              className="w-full h-full object-cover object-top"
-              onError={(e) => {
-                e.target.style.display = 'none'
-                e.target.nextSibling.style.display = 'flex'
-              }}
-            />
-            <div
-              className="absolute inset-0 bg-gray-700 items-center justify-center text-gray-400 text-sm"
-              style={{ display: 'none' }}
-            >
-              Add photo.jpg to src/assets/
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <NSWWaratah size={42} color="#E8192C" />
+              <span className="text-white font-black text-xl tracking-[0.18em]">NSW</span>
             </div>
-            <HolographicOverlay />
+            <RefreshedTime />
           </div>
-        </div>
 
-        {/* Full name */}
-        <h1 className="text-white text-3xl font-bold text-center mb-5">
-          {mockUser.firstName} {mockUser.lastName}
-        </h1>
-
-        <div className="border-t border-gray-700 mb-5" />
-
-        {/* Licence number + QR code */}
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <p className="text-gray-400 text-sm mb-1">Licence number</p>
-            <p className="text-white text-4xl font-bold tracking-wide">{mockUser.licenceNumber}</p>
-            <div className="mt-4">
-              <p className="text-gray-400 text-sm mb-1">Expiry</p>
-              <p className="text-white text-3xl font-bold">{mockUser.expiry}</p>
+          {/* Photo */}
+          <div className="flex justify-center mb-5">
+            <div className="relative overflow-hidden" style={{ width: 200, height: 250, borderRadius: 4 }}>
+              <img
+                src={photoSrc}
+                alt="ID Photo"
+                className="w-full h-full object-cover object-top"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling.style.display = 'flex'
+                }}
+              />
+              <div
+                className="absolute inset-0 items-center justify-center flex-col gap-2"
+                style={{ display: 'none', background: '#1e1e1e' }}
+              >
+                <svg className="w-16 h-16 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+                <p className="text-gray-500 text-xs text-center px-4">Add photo.jpg to<br/>public/ folder</p>
+              </div>
+              <HolographicOverlay />
             </div>
           </div>
-          <div className="bg-white p-1.5 rounded-sm">
-            <QRCodeSVG value={qrData} size={120} />
+
+          {/* Name */}
+          <h1 className="text-white text-center font-black mb-6" style={{ fontSize: 26, letterSpacing: '0.01em' }}>
+            {mockUser.firstName} {mockUser.lastName}
+          </h1>
+
+          <Divider />
+
+          {/* Licence + QR */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1 pr-4">
+              <Field label="Licence number" value={mockUser.licenceNumber} large />
+              <div className="mt-5">
+                <Field label="Expiry" value={mockUser.expiry} large />
+              </div>
+            </div>
+            <div className="flex-shrink-0" style={{ background: 'white', padding: 6, borderRadius: 4 }}>
+              <QRCodeSVG value={qrData} size={112} level="M" />
+            </div>
+          </div>
+
+          <Divider />
+
+          {/* DOB */}
+          <div className="mb-6">
+            <Field label="Date of birth" value={mockUser.dob} large />
+          </div>
+
+          {/* Class + Conditions */}
+          <div className="flex mb-6 overflow-hidden" style={{ borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex-1 px-4 py-3" style={{ borderRight: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)' }}>
+              <Field label="Class" value={mockUser.licenceClass} />
+            </div>
+            <div className="flex-1 px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+              <Field label="Conditions" value={mockUser.conditions} />
+            </div>
+          </div>
+
+          {/* Address with ghost photo */}
+          <div className="relative mb-6 overflow-hidden" style={{ borderRadius: 6 }}>
+            <div className="absolute inset-0" style={{ background: 'rgba(255,255,255,0.03)' }} />
+            <div className="absolute left-0 top-0 bottom-0" style={{ width: 80, opacity: 0.15 }}>
+              <img src={photoSrc} alt="" className="w-full h-full object-cover object-top" />
+            </div>
+            <div className="relative px-4 py-4">
+              <p className="text-gray-500 text-xs font-medium tracking-wider uppercase mb-1">Address</p>
+              <p className="text-white font-bold text-xl leading-snug whitespace-pre-line">
+                {mockUser.address}
+              </p>
+            </div>
+          </div>
+
+          {/* Signature */}
+          <div className="mb-2" style={{ background: 'white', borderRadius: 4, padding: '12px 16px' }}>
+            <svg viewBox="0 0 280 55" className="w-full" style={{ height: 44 }} fill="none">
+              <path
+                d="M16 36 C22 20, 30 14, 38 30 C42 38, 46 44, 52 32 C56 24, 60 18, 66 30 C70 38, 73 44, 80 30 C85 20, 90 16, 98 34 C102 42, 106 46, 113 32 C118 22, 124 18, 130 36"
+                stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"
+              />
+              <path
+                d="M136 38 C140 28, 146 24, 152 36 C156 44, 160 46, 165 34 C168 26, 172 24, 176 32"
+                stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"
+              />
+            </svg>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mb-5" />
-
-        {/* DOB */}
-        <div className="mb-5">
-          <p className="text-gray-400 text-sm mb-1">Date of birth</p>
-          <p className="text-white text-3xl font-bold">{mockUser.dob}</p>
-        </div>
-
-        {/* Class + Conditions grid */}
-        <div className="flex border border-gray-700 rounded-sm mb-5 overflow-hidden">
-          <div className="flex-1 bg-gray-900 px-4 py-3 border-r border-gray-700">
-            <p className="text-gray-400 text-sm mb-1">Class</p>
-            <p className="text-white text-2xl font-bold">{mockUser.licenceClass}</p>
-          </div>
-          <div className="flex-1 bg-gray-900 px-4 py-3">
-            <p className="text-gray-400 text-sm mb-1">Conditions</p>
-            <p className="text-white text-2xl font-bold">{mockUser.conditions}</p>
-          </div>
-        </div>
-
-        {/* Address — with ghost photo behind */}
-        <div className="relative mb-5 overflow-hidden rounded-sm">
-          <div className="absolute left-0 top-0 bottom-0 w-24 opacity-20">
-            <img src={photoSrc} alt="" className="w-full h-full object-cover object-top" />
-          </div>
-          <div className="relative px-4 py-3">
-            <p className="text-gray-400 text-sm mb-1">Address</p>
-            <p className="text-white text-xl font-bold whitespace-pre-line leading-snug">
-              {mockUser.address}
-            </p>
-          </div>
-        </div>
-
-        {/* Signature */}
-        <div className="bg-white rounded-sm px-4 py-3 mb-6">
-          <svg viewBox="0 0 300 60" className="w-full h-12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M20 40 Q35 15 50 38 Q60 52 70 35 Q78 22 88 38 Q95 48 100 35 Q108 18 118 40 Q125 52 135 38"
-              stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" fill="none"
-            />
-            <path
-              d="M140 42 Q148 30 156 42 Q162 50 168 35"
-              stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" fill="none"
-            />
+        {/* Yellow footer wedge */}
+        <div className="relative overflow-hidden" style={{ height: 40 }}>
+          <svg viewBox="0 0 390 40" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+            <polygon points="0,40 390,40 390,10 130,40" fill="#F2C015" />
           </svg>
         </div>
 
-        {/* Yellow footer diagonal */}
-        <div className="relative h-8 overflow-hidden mb-0 -mx-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(to top right, #F0C020 50%, transparent 50%)',
-            }}
-          />
-        </div>
-
-        {/* Yellow section — card number */}
-        <div className="bg-nsw-yellow -mx-5 px-5 py-5 flex items-center justify-between"
-          style={{ backgroundColor: '#F0C020' }}>
+        {/* Yellow footer */}
+        <div className="flex items-center justify-between px-6 py-5" style={{ background: '#F2C015' }}>
           <div>
-            <p className="text-gray-700 text-sm">Card number</p>
-            <p className="text-black text-3xl font-bold tracking-wide">{mockUser.cardNumber}</p>
+            <p className="text-yellow-900 text-xs font-medium tracking-wider uppercase mb-0.5">Card number</p>
+            <p className="text-black font-black text-3xl tracking-wide">{mockUser.cardNumber}</p>
           </div>
-          <div className="text-right">
-            <NSWLotus size={44} color="#1a1a1a" />
-            <p className="text-black text-sm font-bold tracking-widest mt-1">NSW</p>
+          <div className="flex flex-col items-center gap-1">
+            <NSWWaratah size={42} color="#1a1a1a" />
+            <span className="text-black font-black text-sm tracking-[0.2em]">NSW</span>
           </div>
         </div>
       </div>
 
-      {/* Sticky verify button */}
-      <div className="sticky bottom-0 bg-black border-t border-gray-800 px-5 py-4">
+      {/* Sticky bottom bar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 px-5 py-4"
+        style={{ background: 'rgba(13,13,13,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}
+      >
         <button
           onMouseDown={handleVerifyStart}
           onMouseUp={handleVerifyEnd}
           onTouchStart={handleVerifyStart}
           onTouchEnd={handleVerifyEnd}
-          className={`w-full py-4 rounded-xl font-bold tracking-widest text-sm transition-all duration-200 select-none ${
-            verifying ? 'bg-green-600 text-white scale-95' : 'bg-gray-800 text-white'
-          }`}
+          className="w-full relative overflow-hidden select-none"
+          style={{
+            height: 52,
+            borderRadius: 12,
+            background: verifying ? '#1a8a3a' : '#1e1e1e',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: '0.12em',
+            transition: 'background 0.2s',
+          }}
         >
-          {verifying ? 'VERIFYING...' : 'HOLD TO VERIFY'}
+          {verifying && (
+            <div
+              className="absolute left-0 top-0 bottom-0 transition-all duration-75"
+              style={{ width: `${progress}%`, background: 'rgba(255,255,255,0.15)', borderRadius: 12 }}
+            />
+          )}
+          <span className="relative">{verifying ? 'VERIFYING...' : 'HOLD TO VERIFY'}</span>
         </button>
-        <div className="flex justify-between mt-3">
-          <button onClick={onLock} className="text-gray-500 text-xs">🔒 Lock</button>
-          <p className="text-gray-600 text-xs">Hold for venue / age verification</p>
+        <div className="flex items-center justify-between mt-2.5 px-1">
+          <button onClick={onLock} className="text-xs font-medium" style={{ color: '#555' }}>Lock</button>
+          <p className="text-xs" style={{ color: '#444' }}>Hold for venue / age verification</p>
         </div>
       </div>
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes holo-spin {
+          from { transform: rotate(0deg) scale(1.4); }
+          to   { transform: rotate(360deg) scale(1.4); }
+        }
       `}</style>
     </div>
   )
