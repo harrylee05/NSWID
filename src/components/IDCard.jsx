@@ -243,15 +243,32 @@ export default function IDCard({ onLock }) {
           </div>
 
           {/* Signature */}
-          <div className="mb-2" style={{ background: 'white', borderRadius: 4, padding: '12px 16px' }}>
-            <svg viewBox="0 0 280 55" className="w-full" style={{ height: 44 }} fill="none">
+          <div className="mb-2" style={{ background: 'white', borderRadius: 4, padding: '14px 20px' }}>
+            <svg viewBox="0 0 260 64" className="w-full" style={{ height: 52 }} fill="none">
+              {/* h — tall ascender with looped hump */}
               <path
-                d="M16 36 C22 20, 30 14, 38 30 C42 38, 46 44, 52 32 C56 24, 60 18, 66 30 C70 38, 73 44, 80 30 C85 20, 90 16, 98 34 C102 42, 106 46, 113 32 C118 22, 124 18, 130 36"
-                stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"
+                d="M12 52 C12 40 13 22 15 14 C16 10 17 9 18 10 C19 12 18 22 18 32 C18 36 19 38 21 36 C25 31 30 26 35 28 C39 30 40 36 40 42 C40 46 40 50 41 52"
+                stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
               />
+              {/* l — tall looping ascender connected */}
               <path
-                d="M136 38 C140 28, 146 24, 152 36 C156 44, 160 46, 165 34 C168 26, 172 24, 176 32"
-                stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"
+                d="M41 52 C41 44 42 28 44 18 C45 13 46 11 47 12 C48 14 48 24 48 36 C48 44 48 50 49 53"
+                stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
+              />
+              {/* e — cursive, connected from l */}
+              <path
+                d="M49 53 C51 50 55 44 60 43 C64 42 67 44 68 47 C69 51 67 55 63 56 C59 57 55 54 54 51 C53 48 55 44 59 43"
+                stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
+              />
+              {/* e — second e with exit flourish */}
+              <path
+                d="M68 47 C70 44 74 42 79 43 C83 44 85 47 85 50 C85 54 82 57 78 57 C74 57 70 54 70 51 C69 48 71 44 75 43 C78 42 82 44 84 47 C86 50 88 52 96 51 C104 50 112 47 120 46"
+                stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
+              />
+              {/* Underline flourish */}
+              <path
+                d="M10 58 C30 60 70 62 120 59"
+                stroke="#1a1a1a" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.5"
               />
             </svg>
           </div>
