@@ -1,19 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { mockUser } from '../data/mockUser'
 
-function usePhoto() {
-  const [photo, setPhoto] = useState(() => localStorage.getItem('id_photo') || null)
-  const upload = (file) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      localStorage.setItem('id_photo', e.target.result)
-      setPhoto(e.target.result)
-    }
-    reader.readAsDataURL(file)
-  }
-  return [photo, upload]
-}
+const photoSrc = '/photo.jpg'
 
 /* NSW Waratah — stylised Telopea flower matching the real NSW Government logo */
 function NSWWaratah({ size = 48, color = '#E8192C' }) {
@@ -117,8 +106,6 @@ function Field({ label, value, large = false, className = '' }) {
 }
 
 export default function IDCard({ onLock }) {
-  const [photo, uploadPhoto] = usePhoto()
-  const fileInputRef = useRef(null)
   const [verifying, setVerifying] = useState(false)
   const [verified, setVerified] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -198,43 +185,10 @@ export default function IDCard({ onLock }) {
 
           {/* Photo */}
           <div className="flex justify-center mb-5">
-            <div
-              className="relative overflow-hidden cursor-pointer"
-              style={{ width: 200, height: 250, borderRadius: 4 }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {photo ? (
-                <img src={photo} alt="ID Photo" className="w-full h-full object-cover object-top" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ background: '#1a1a1a', border: '2px dashed rgba(255,255,255,0.15)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" className="w-12 h-12">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                  </svg>
-                  <span className="text-xs font-medium text-center" style={{ color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
-                    Tap to upload<br/>your photo
-                  </span>
-                </div>
-              )}
+            <div className="relative overflow-hidden" style={{ width: 200, height: 250, borderRadius: 4 }}>
+              <img src={photoSrc} alt="ID Photo" className="w-full h-full object-cover object-top" />
               <HolographicOverlay />
-              {photo && (
-                <div
-                  className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full"
-                  style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-3 h-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
-                  </svg>
-                  <span className="text-white text-xs">Change</span>
-                </div>
-              )}
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])}
-            />
           </div>
 
           {/* Name */}
@@ -277,11 +231,9 @@ export default function IDCard({ onLock }) {
           {/* Address with ghost photo */}
           <div className="relative mb-6 overflow-hidden" style={{ borderRadius: 6 }}>
             <div className="absolute inset-0" style={{ background: 'rgba(255,255,255,0.03)' }} />
-            {photo && (
-              <div className="absolute left-0 top-0 bottom-0" style={{ width: 80, opacity: 0.15 }}>
-                <img src={photo} alt="" className="w-full h-full object-cover object-top" />
-              </div>
-            )}
+            <div className="absolute left-0 top-0 bottom-0" style={{ width: 80, opacity: 0.15 }}>
+              <img src={photoSrc} alt="" className="w-full h-full object-cover object-top" />
+            </div>
             <div className="relative px-4 py-4">
               <p className="text-gray-500 text-xs font-medium tracking-wider uppercase mb-1">Address</p>
               <p className="text-white font-bold text-xl leading-snug whitespace-pre-line">
